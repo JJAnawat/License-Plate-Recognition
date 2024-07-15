@@ -1,19 +1,66 @@
 import cv2
-from ultralytics import YOLO
+import numpy as np
+import matplotlib.pyplot as plt
 
-model = YOLO("Train-Result/weights/best.pt")
+# Load the image and convert to grayscale
+image = cv2.imread('Tmp.jpg', cv2.IMREAD_GRAYSCALE)
 
-picture_number = 2
+# Binarize the image
+_, binary_image = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
 
-path_to_img = f"Thai-plate/{picture_number}.jpg"
+# Compute vertical projection
+vertical_projection = np.sum(binary_image, axis=0)
 
-results = model.predict(path_to_img)
+# Compute horizontal projection
+horizontal_projection = np.sum(binary_image, axis=1)
 
-for i, (result,) in enumerate(results):
-    boxes = result.boxes.xyxy[0].numpy() # (x_min, y_min, x_max, y_max) format
-    x1, y1, x2, y2 = boxes
+# Calculate border positions using the projections
+dv = np.diff(vertical_projection)
+dh = np.diff(horizontal_projection)
 
-    img_cv = cv2.imread(path_to_img)
+# Find maximum and minimum positions in dv and dh
+ma_v = np.argmax(dv)
+mi_v = np.argmin(dv)
+ma_h = np.argmax(dh)
+mi_h = np.argmin(dh)
 
-    cropped_img = img_cv[int(y1):int(y2), int(x1):int(x2)]
-    cv2.imwrite(f'cropped_{picture_number}_{i+1}.jpg',cropped_img)
+# Crop the image using the detected borders
+# Note: Ensure that the border indices are within the image dimensions
+top_border = max(0, ma_h - 1)
+bottom_border = min(binary_image.shape[0], mi_h + 1)
+left_border = max(0, ma_v - 1)
+right_border = min(binary_image.shape[1], mi_v + 1)
+
+cropped_image = binary_image[top_border:bottom_border, left_border:right_border]
+
+# Display the results
+plt.figure(figsize=(10, 10))
+
+# Original image
+plt.subplot(3, 1, 1)
+plt.title('Binarized Image')
+plt.imshow(binary_image, cmap='gray')
+
+# Vertical projection
+plt.subplot(3, 1, 2)
+plt.title('Vertical Projection')
+plt.plot(vertical_projection)
+
+# Horizontal projection
+plt.subplot(3, 1, 3)
+plt.title('Horizontal Projection')
+plt.plot(horizontal_projection)
+
+plt.show()
+
+# Display cropped image
+plt.figure()
+plt.title('Cropped Image')
+plt.imshow(cropped_image, cmap='gray')
+plt.show()
+
+# Save the cropped image
+cv2.imwrite('cropped_license_plate.jpg', cropped_image)
+
+print(f'Vertical border positions: max at {ma_v}, min at {mi_v}')
+print(f'Horizontal border positions: max at {ma_h}, min at {mi_h}')
