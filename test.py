@@ -1,66 +1,66 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from OCR import EasyOCR
+from PIL import Image, ImageDraw, ImageFont
 
-# Load the image and convert to grayscale
-image = cv2.imread('Tmp.jpg', cv2.IMREAD_GRAYSCALE)
+def preprocess_image(image_path):
+    # Load the image
+    img = cv2.imread(image_path)
 
-# Binarize the image
-_, binary_image = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
+    # Convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# Compute vertical projection
-vertical_projection = np.sum(binary_image, axis=0)
+    # Otsu's Binarization
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-# Compute horizontal projection
-horizontal_projection = np.sum(binary_image, axis=1)
+    # Gentle denoising  
+    denoised = cv2.fastNlMeansDenoising(binary, None, 30, 7, 21)
 
-# Calculate border positions using the projections
-dv = np.diff(vertical_projection)
-dh = np.diff(horizontal_projection)
+    # Optional: Enhance contrast using histogram equalization
+    equalized = cv2.equalizeHist(denoised)
 
-# Find maximum and minimum positions in dv and dh
-ma_v = np.argmax(dv)
-mi_v = np.argmin(dv)
-ma_h = np.argmax(dh)
-mi_h = np.argmin(dh)
+    # # Optional: Resize the image if necessary for your OCR model
+    # resized = cv2.resize(equalized, (640, 640))
 
-# Crop the image using the detected borders
-# Note: Ensure that the border indices are within the image dimensions
-top_border = max(0, ma_h - 1)
-bottom_border = min(binary_image.shape[0], mi_h + 1)
-left_border = max(0, ma_v - 1)
-right_border = min(binary_image.shape[1], mi_v + 1)
+    return equalized
 
-cropped_image = binary_image[top_border:bottom_border, left_border:right_border]
+# Example usage
+image_path = 'Tmp.jpg'
+image = preprocess_image(image_path)
 
-# Display the results
-plt.figure(figsize=(10, 10))
+reader = EasyOCR()
 
-# Original image
-plt.subplot(3, 1, 1)
-plt.title('Binarized Image')
-plt.imshow(binary_image, cmap='gray')
+results = reader.readText(image)
 
-# Vertical projection
-plt.subplot(3, 1, 2)
-plt.title('Vertical Projection')
-plt.plot(vertical_projection)
+img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+draw = ImageDraw.Draw(img_pil)
 
-# Horizontal projection
-plt.subplot(3, 1, 3)
-plt.title('Horizontal Projection')
-plt.plot(horizontal_projection)
+thai_font_path = 'NotoSansThaiLooped-Regular.ttf'  # Example path to a Thai font
+font = ImageFont.truetype(thai_font_path, size=12)
 
+for (bbox, text, prob) in results:
+    # Unpack the bounding box
+    (top_left, top_right, bottom_right, bottom_left) = bbox
+    top_left = tuple([int(val) for val in top_left])
+    top_right = tuple([int(val) for val in top_right])
+    bottom_right = tuple([int(val) for val in bottom_right])
+    bottom_left = tuple([int(val) for val in bottom_left])
+
+    # Draw the bounding box
+    cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 1)
+
+    draw.rectangle([top_left, bottom_right], outline='green', width=2)
+    draw.text((top_left[0], top_left[1] - 4), text + str(prob), font=font, fill='green')
+
+    print(text)
+
+image_with_text = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+
+# Display the image with bounding boxes
+plt.imshow(cv2.cvtColor(image_with_text, cv2.COLOR_BGR2RGB))
+plt.title('Image with Bounding Boxes')
 plt.show()
 
-# Display cropped image
-plt.figure()
-plt.title('Cropped Image')
-plt.imshow(cropped_image, cmap='gray')
-plt.show()
-
-# Save the cropped image
-cv2.imwrite('cropped_license_plate.jpg', cropped_image)
-
-print(f'Vertical border positions: max at {ma_v}, min at {mi_v}')
-print(f'Horizontal border positions: max at {ma_h}, min at {mi_h}')
+# Save the image with bounding boxes if needed
+# cv2.imwrite('output_image.jpg', image)
