@@ -3,7 +3,7 @@ import constants
 
 class EasyOCR():
     def __init__(self):
-        self.reader = easyocr.Reader(["th","en"])
+        self.reader = easyocr.Reader(["th"])
     def readText(self,path):
         results = self.reader.readtext(path)
 
