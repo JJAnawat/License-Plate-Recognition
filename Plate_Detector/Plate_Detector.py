@@ -10,7 +10,7 @@ class PlateDetector:
 
         results = [result.boxes for result in results]
 
-        self.bboxes = [box for box in results[0].xyxy]
+        self.bboxes = [box.numpy() for box in results[0].xyxy]
 
         return self.bboxes
 
