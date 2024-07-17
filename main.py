@@ -4,7 +4,7 @@ from OCR import EasyOCR
 import constants
 
 def main():
-    picture_number = 5
+    picture_number = 3
 
     path_to_img = f"Thai_Plate/{picture_number}.jpg"
 
