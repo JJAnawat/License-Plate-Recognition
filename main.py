@@ -1,16 +1,22 @@
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageFont
+from fuzzywuzzy import process
 
 from Plate_Detector import PlateDetector
 from OCR import EasyOCR
 import constants
 
+def findClosestProvince(predicted_province):
+    closest_province = process.extractOne(predicted_province, constants.PROVINCES)
+    return closest_province[0] if closest_province else None
+
 def readEasyOCR(path, img_height, img_width):
     reader = EasyOCR()
     ocr_results = reader.readText(path)
 
-    plate_number = "None"
+    # Get plate number
+    plate_number = ocr_results[0][1]
     min_dist = -1
     for ocr_result in ocr_results:
         center = reader.getCenter(ocr_result[0])
@@ -22,10 +28,31 @@ def readEasyOCR(path, img_height, img_width):
             min_dist = cur_dist
             plate_number = ocr_result[1]
 
-    return plate_number
+    # Get province
+    province = ocr_results[0][1]
+    min_dist = -1
+    for ocr_result in ocr_results:
+        center = reader.getCenter(ocr_result[0])
+        cur_dist = abs(center[0] - img_width * constants.PLATE_PRO_XPOS) + abs(center[1] - img_height * constants.PLATE_PRO_YPOS)
+        if(min_dist == -1):
+            min_dist = cur_dist
+            province = ocr_result[1]
+        if(cur_dist < min_dist):
+            min_dist = cur_dist
+            province = ocr_result[1]
+
+    if(province == plate_number):
+        return plate_number, "No province"
+
+    corrected_province = findClosestProvince(province)
+
+    if(corrected_province is None):
+        corrected_province = "No province"
+
+    return plate_number, corrected_province
 
 def main():
-    picture_number = 1
+    picture_number = 5
 
     path_to_img = f"Thai_Plate/{picture_number}.jpg"
 
@@ -60,9 +87,9 @@ def main():
         preprocessed_img = plateDetector.preprocessImg(cropped_img)
         cv2.imwrite(f"Cropped_{i+1}.jpg", preprocessed_img)
 
-        plate_number_EasyOCR = readEasyOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
+        plate_number_EasyOCR, province_EasyOCR = readEasyOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
 
-        draw.text((x1, y1 - 30), f"EasyOCR : {plate_number_EasyOCR}", font=font, fill='green')
+        draw.text((x1, y1 - 30), f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}", font=font, fill='green')
 
     image_with_text = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
