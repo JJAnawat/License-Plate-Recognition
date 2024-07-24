@@ -5,6 +5,7 @@ from fuzzywuzzy import process
 
 from Plate_Detector import PlateDetector
 from OCR import EasyOCR
+from Letter_Recognition import LetterRecognitor
 import constants
 
 def findClosestProvince(predicted_province):
@@ -16,7 +17,7 @@ def readEasyOCR(path, img_height, img_width):
     ocr_results = reader.readText(path)
 
     # Get plate number
-    plate_number = ocr_results[0][1]
+    plate_number = None
     min_dist = -1
     for ocr_result in ocr_results:
         center = reader.getCenter(ocr_result[0])
@@ -29,7 +30,47 @@ def readEasyOCR(path, img_height, img_width):
             plate_number = ocr_result[1]
 
     # Get province
-    province = ocr_results[0][1]
+    province = None
+    min_dist = -1
+    for ocr_result in ocr_results:
+        center = reader.getCenter(ocr_result[0])
+        cur_dist = abs(center[0] - img_width * constants.PLATE_PRO_XPOS) + abs(center[1] - img_height * constants.PLATE_PRO_YPOS)
+        if(min_dist == -1):
+            min_dist = cur_dist
+            province = ocr_result[1]
+        if(cur_dist < min_dist):
+            min_dist = cur_dist
+            province = ocr_result[1]
+
+    if(province == plate_number):
+        return plate_number, "No province"
+
+    corrected_province = findClosestProvince(province)
+
+    if(corrected_province is None):
+        corrected_province = "No province"
+
+    return plate_number, corrected_province
+
+def readCustomOCR(path, img_height, img_width):
+    reader = LetterRecognitor()
+    ocr_results = reader.getBBox(path)
+
+    # Get plate number
+    plate_number = None
+    min_dist = -1
+    for ocr_result in ocr_results:
+        center = reader.getCenter(ocr_result[0])
+        cur_dist = abs(center[0] - img_width * constants.PLATE_NUM_XPOS) + abs(center[1] - img_height * constants.PLATE_NUM_YPOS)
+        if(min_dist == -1):
+            min_dist = cur_dist
+            plate_number = ocr_result[1]
+        if(cur_dist < min_dist):
+            min_dist = cur_dist
+            plate_number = ocr_result[1]
+
+    # Get province
+    province = None
     min_dist = -1
     for ocr_result in ocr_results:
         center = reader.getCenter(ocr_result[0])
@@ -52,7 +93,7 @@ def readEasyOCR(path, img_height, img_width):
     return plate_number, corrected_province
 
 def main():
-    picture_number = 5
+    picture_number = 1
 
     path_to_img = f"Thai_Plate/{picture_number}.jpg"
 
@@ -88,8 +129,10 @@ def main():
         cv2.imwrite(f"Cropped_{i+1}.jpg", preprocessed_img)
 
         plate_number_EasyOCR, province_EasyOCR = readEasyOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
+        plate_number_Custom, province_Custom = readCustomOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
 
-        draw.text((x1, y1 - 30), f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}", font=font, fill='green')
+        draw.text((x1, y1 - 60), f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}", font=font, fill='green')
+        draw.text((x1, y1 - 30), f"CustomOCR : {plate_number_Custom}, {province_Custom}", font=font, fill='green')
 
     image_with_text = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 

@@ -1,14 +1,14 @@
 # Thresholds
 IMG_SIZE_THRESHOLD = 3500 # This can be pixel^2 because it also shows image resolution
-OCR_CONF_THRESHOLD = 0.2
+OCR_CONF_THRESHOLD = 0.4
 YBBOX_DIS_THRESHOLD = 0.15 # This one and below should be fraction because not all images have same resolution
-XBBOX_DIS_THRESHOLD = 0.12
+XBBOX_DIS_THRESHOLD = 0.2
 
 # Positions
 PLATE_NUM_XPOS = 0.5
 PLATE_NUM_YPOS = 0.33
 PLATE_PRO_XPOS = 0.5
-PLATE_PRO_YPOS = 0.8
+PLATE_PRO_YPOS = 0.85
 
 # Provinces
 PROVINCES = [
@@ -27,3 +27,6 @@ PROVINCES = [
     "สงขลา", "สิงห์บุรี", "สระบุรี","หนองคาย","หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อยุธยา"
     "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
 ]
+
+# Letter Recognition
+LETTER_INDEX = {0: '0', 1: '1', 2: 'ก', 3: 'ข', 4: 'ค', 5: 'ฆ', 6: 'ง', 7: 'จ', 8: 'ฉ', 9: 'ช', 10: 'ฌ', 11: 'ญ', 12: '2', 13: 'ฎ', 14: 'ฐ', 15: 'ฒ', 16: 'ณ', 17: 'ด', 18: 'ต', 19: 'ถ', 20: 'ท', 21: 'ธ', 22: 'น', 23: '3', 24: 'บ', 25: 'ผ', 26: 'พ', 27: 'ฟ', 28: 'ภ', 29: 'ม', 30: 'ย', 31: 'ร', 32: 'ล', 33: 'ว', 34: '4', 35: 'ศ', 36: 'ษ', 37: 'ส', 38: 'ห', 39: 'ฬ', 40: 'อ', 41: 'ฮ', 42: '5', 43: '6', 44: '7', 45: '8', 46: '9'}
