@@ -75,12 +75,14 @@ def readCustomOCR(path, img_height, img_width):
     province = province_reader.getProvince(path)
 
     if(province is None):
-        return plate_number, "No province"
+            return plate_number, "No province"
+    
+    province = constants.PROVINCES_TO_THAI[province]
 
     return plate_number, province
 
 def main():
-    picture_number = 6
+    picture_number = 7
 
     path_to_img = f"Thai_Plate/{picture_number}.jpg"
 

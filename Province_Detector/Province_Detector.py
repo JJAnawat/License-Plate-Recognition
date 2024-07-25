@@ -17,7 +17,7 @@ class ProvinceDetector:
 
         sorted_tmp = sorted(tmp, reverse=True)
 
-        print(sorted_tmp)
+        # print(sorted_tmp)
 
         if(len(sorted_tmp) == 0):
             return None
