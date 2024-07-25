@@ -1,5 +1,5 @@
-from Letter_Recognition import LetterRecognitor
+from Province_Detector import ProvinceDetector
 
-reader = LetterRecognitor()
+reader = ProvinceDetector()
 
-print(reader.getBBox("Cropped_1.jpg"))
+print(reader.getProvince("Cropped_1.jpg"))

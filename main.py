@@ -6,6 +6,7 @@ from fuzzywuzzy import process
 from Plate_Detector import PlateDetector
 from OCR import EasyOCR
 from Letter_Recognition import LetterRecognitor
+from Province_Detector import ProvinceDetector
 import constants
 
 def findClosestProvince(predicted_province):
@@ -70,30 +71,16 @@ def readCustomOCR(path, img_height, img_width):
             plate_number = ocr_result[1]
 
     # Get province
-    province = None
-    min_dist = -1
-    for ocr_result in ocr_results:
-        center = reader.getCenter(ocr_result[0])
-        cur_dist = abs(center[0] - img_width * constants.PLATE_PRO_XPOS) + abs(center[1] - img_height * constants.PLATE_PRO_YPOS)
-        if(min_dist == -1):
-            min_dist = cur_dist
-            province = ocr_result[1]
-        if(cur_dist < min_dist):
-            min_dist = cur_dist
-            province = ocr_result[1]
+    province_reader = ProvinceDetector()
+    province = province_reader.getProvince(path)
 
-    if(province == plate_number):
+    if(province is None):
         return plate_number, "No province"
 
-    corrected_province = findClosestProvince(province)
-
-    if(corrected_province is None):
-        corrected_province = "No province"
-
-    return plate_number, corrected_province
+    return plate_number, province
 
 def main():
-    picture_number = 1
+    picture_number = 6
 
     path_to_img = f"Thai_Plate/{picture_number}.jpg"
 
@@ -131,7 +118,7 @@ def main():
         plate_number_EasyOCR, province_EasyOCR = readEasyOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
         plate_number_Custom, province_Custom = readCustomOCR(f"Cropped_{i+1}.jpg", img_height, img_width)
 
-        draw.text((x1, y1 - 60), f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}", font=font, fill='green')
+        draw.text((x1, y1 - 50), f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}", font=font, fill='green')
         draw.text((x1, y1 - 30), f"CustomOCR : {plate_number_Custom}, {province_Custom}", font=font, fill='green')
 
     image_with_text = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
