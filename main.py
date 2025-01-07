@@ -82,9 +82,7 @@ def readCustomOCR(path, img_height, img_width):
     return plate_number, province
 
 def main():
-    picture_number = 7
-
-    path_to_img = f"Thai_Plate/{picture_number}.jpg"
+    path_to_img = "Thai_Plate/HighRes_Plate/6.jpg"
 
     plateDetector = PlateDetector()
     bboxes = plateDetector.getBBox(path_to_img)
@@ -114,6 +112,8 @@ def main():
 
         cropped_img = img_cv[y1:y2, x1:x2]
 
+        cv2.imwrite(f"Cropped_befProc_{i+1}.jpg", cropped_img)
+
         preprocessed_img = plateDetector.preprocessImg(cropped_img)
         cv2.imwrite(f"Cropped_{i+1}.jpg", preprocessed_img)
 
@@ -124,8 +124,11 @@ def main():
         draw.text((x1, y1 - 30), f"CustomOCR : {plate_number_Custom}, {province_Custom}", font=font, fill='green')
 
     image_with_text = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+    
+    print(f"EasyOCR : {plate_number_EasyOCR}, {province_EasyOCR}")
+    print(f"CustomOCR : {plate_number_Custom}, {province_Custom}")
 
-    cv2.imshow(f"{picture_number}.jpg",cv2.cvtColor(image_with_text, cv2.COLOR_BGR2RGB))
+    cv2.imshow(path_to_img,cv2.cvtColor(image_with_text, cv2.COLOR_BGR2RGB))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
