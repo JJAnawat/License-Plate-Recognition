@@ -82,7 +82,7 @@ def readCustomOCR(path, img_height, img_width):
     return plate_number, province
 
 def main():
-    path_to_img = "Thai_Plate/HighRes_Plate/6.jpg"
+    path_to_img = "Thai_Plate/LowRes_Plate/1.jpg"
 
     plateDetector = PlateDetector()
     bboxes = plateDetector.getBBox(path_to_img)

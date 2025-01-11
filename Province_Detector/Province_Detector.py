@@ -2,7 +2,7 @@ from ultralytics import YOLO
 
 class ProvinceDetector:
     def __init__(self):
-        self.model = YOLO("../Train_Result/Province/weights/best.pt")
+        self.model = YOLO("../Train_Result/Province2/weights/best.pt")
 
     def getProvince(self, path):
         results = self.model.predict(path)
